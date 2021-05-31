@@ -35,14 +35,15 @@ const convertToUnique4 = (arr) => {
 };
 
 const convertToUnique5 = (arr) => {
-  let flag = {};
-  const newArr = [];
-  arr.forEach((item) => {
+   let flag = {};
+   const newArr = arr.reduce((tempArr,item) => {
     if (flag[item] !== 1) {
       flag[item] = 1;
-      newArr.push(item);
+      tempArr.push(item);
+
     }
-  });
+    return tempArr;
+  },[]);
   return newArr;
 };
 
