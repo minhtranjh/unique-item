@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    <title>Carousel</title>
+  </head>
+  <style>
+    body {
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    .wrapper {
+      position: relative;
+    }
+    .slider {
+      display: flex;
+    }
+    .slider {
+      width: 100vw;
+    }
+    .slide img {
+      object-fit: cover;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide-btn button:first-child {
+      position: absolute;
+      left: 10px;
+      border: none;
+      outline: none;
+      opacity: 0.5;
+      top: 45%;
+      padding: 20px;
+      cursor: pointer;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .slide-btn button:last-child {
+      position: absolute;
+      right: 10px;
+      opacity: 0.5;
+      padding: 20px;
+      cursor: pointer;
+      top: 45%;
+      border: none;
+      outline: none;
+      border-radius: 50%;
+
+      z-index: 1;
+    }
+    .slide-btn button:hover {
+      opacity: 1;
+    }
+    .slide-dot {
+      position: absolute;
+      bottom: 20px;
+      gap: 10px;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .dot {
+      width: 10px;
+      cursor: pointer;
+      height: 10px;
+      border-radius: 50%;
+      bottom: 0;
+      background-color: white;
+    }
+    .dot.is-active {
+      background-color: black;
+    }
+  </style>
+  <body>
+    <div class="wrapper">
+      <div class="slider">
+        <div class="slide">
+          <img src="/assets/photo-1500365255-2cb778f578ad.jpeg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/assets/photo-1502187048582-14977e8b1c60.jpeg" alt="" />
+        </div>
+        <div class="slide">
+          <img src="/assets/photo-1616035597562-8022824c47b3.jpeg" alt="" />
+        </div>
+      </div>
+      <div class="slide-btn">
+        <button onclick="prev()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <button onclick="next()">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+      <div class="slide-dot">
+        <div onclick="choose(1)" class="dot is-active"></div>
+        <div onclick="choose(2)" class="dot"></div>
+        <div onclick="choose(3)" class="dot"></div>
+      </div>
+    </div>
+    <script>
+     //Declaration
+      let index = 1;
+      let x = -100;
+      const slider = document.querySelector(".slider");
+      slider.style.transform = `translateX(${x}%)`;
+      let slide = document.querySelectorAll(".slide");
+      const dot = document.querySelectorAll(".dot");
+
+      //Infinite slide
+      const firstClone = slide[0].cloneNode(true);
+      const lastClone = slide[slide.length - 1].cloneNode(true);
+
+      firstClone.id = "first-clone";
+      lastClone.id = "last-clone";
+
+      slider.append(firstClone);
+      slider.prepend(lastClone);
+      slider.addEventListener("transitionend", () => {
+        slide = document.querySelectorAll(".slide");
+        if (slide[index].id === firstClone.id) {
+          slider.style.transition = "none";
+          index = 1;
+          x = -100;
+          slider.style.transform = `translateX(${x}%)`;
+        }
+        if (slide[index].id === lastClone.id) {
+          slider.style.transition = "none";
+          index = slide.length - 2;
+          x = -(slide.length - 2) * 100;
+          slider.style.transform = `translateX(${x}%)`;
+        }
+      });
+
+      //Next slide
+      function next() {
+        if (index >= slide.length - 1) return;
+
+        if (index >= dot.length) {
+          dot[index - 1].classList.remove("is-active");
+          dot[0].classList.add("is-active");
+        } else {
+          dot[index - 1].classList.remove("is-active");
+          dot[index].classList.add("is-active");
+        }
+        index += 1;
+        x -= 100;
+        slider.style.transition = ".7s";
+        slider.style.transform = `translateX(${x}%)`;
+      }
+      //Previous slide
+      function prev() {
+        if (index <= 0) return;
+        if (index - 1 <= 0) {
+          dot[index - 1].classList.remove("is-active");
+          dot[dot.length - 1].classList.add("is-active");
+        } else {
+          dot[index - 1].classList.remove("is-active");
+          dot[index - 2].classList.add("is-active");
+        }
+        index -= 1;
+        x += 100;
+        slider.style.transition = ".7s";
+        slider.style.transform = `translateX(${x}%)`;
+      }
+
+      //Dot choose slide
+      function choose(i) {
+        dot[index - 1].classList.remove("is-active");
+        dot[i - 1].classList.add("is-active");
+        index = i;
+        x = -100 * i;
+        slider.style.transition = ".7s";
+        slider.style.transform = `translateX(${x}%)`;
+      }
+    </script>
+  </body>
+</html>
