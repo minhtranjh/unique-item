@@ -22,7 +22,7 @@ function setupMap(center) {
   map = new mapboxgl.Map({
     container: "map",
     style: "mapbox://styles/mapbox/streets-v11",
-    zoom: 5,
+    zoom: 18,
     center: center,
   });
   map.on("load", () => {
@@ -67,13 +67,13 @@ function moveToPlace(lng, lat, type) {
       zoom = 5;
       break;
     case "region":
-      zoom = 12;
+      zoom = 10;
       break;
     case "place":
-      zoom = 14;
+      zoom = 12;
       break;
     case "poi":
-      zoom = 18;
+      zoom = 17;
       break;
     default:
       break;
@@ -81,7 +81,7 @@ function moveToPlace(lng, lat, type) {
   map.flyTo({
     center: [lng, lat],
     essential: true,
-    zoom
+    zoom,
   });
 }
 
@@ -150,11 +150,7 @@ async function fetchData(query) {
     data.features.forEach((item, index) => {
       suggestions.innerHTML += `
       <div onclick="moveToPlace(${
-        item.center[0] +
-        "," +
-        item.center[1] +
-        "," +
-        `'${item.place_type[0]}'`
+        item.center[0] + "," + item.center[1] + "," + `'${item.place_type[0]}'`
       })" class="sug">
       <i class="fas fa-map-marker-alt"></i>
           <span>${item.place_name}</span>
