@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.js"></script>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.3.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css"
+      type="text/css"
+    />
+    <title>Google Map Clone</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+      .search-box {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        width: 300px;
+      }
+
+      #search-input {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+        outline: none;
+        padding: 10px 20px 10px 5px;
+      }
+      .suggestions {
+        background-color: white;
+        padding: 10px 20px 10px 10px;
+        margin-top: 10px;
+        display: none;
+      }
+      .sug {
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+      }
+      .sug:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+      .sug.failed {
+        color: skyblue;
+        font-weight: bold;
+      }
+      .sug:last-child {
+        border-bottom: none;
+      }
+      .search-wrap {
+        display: flex;
+        background-color: white;
+        align-items: center;
+        padding: 10px 20px;
+      }
+      .fa-spinner.loading {
+        display: block;
+      }
+      .fa-spinner {
+        display: none;
+        animation: spin 1000ms linear infinite;
+      }
+      .fa-search {
+        margin-right: 5px;
+      }
+      .fa-map-marker-alt {
+        margin-right: 10px;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="search-box">
+      <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Type your address" />
+        <div class="">
+          <i class="fas fa-spinner"></i>
+        </div>
+      </div>
+      <div class="suggestions"></div>
+    </div>
+    <script src="/mapbox/index.js"></script>
+  </body>
+</html>
