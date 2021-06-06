@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    <title>Facebook Cover</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+
+        box-sizing: border-box;
+      }
+
+      .wrapper {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: #d8d8d8;
+      }
+      .container {
+        width: 1050px;
+        height: 400px;
+        overflow: hidden;
+        display: flex;
+        background-color: white;
+        align-items: center;
+
+        justify-content: center;
+      }
+      .cover-wrap {
+        position: relative;
+        min-width: 100%;
+        height: 100%;
+
+        overflow: hidden;
+      }
+      .box {
+        position: relative;
+      }
+      .box.grabbing {
+        cursor: move;
+      }
+      img {
+        user-select: none;
+        width: 100%;
+      }
+
+      .repos-input {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        transform: rotate(-90deg);
+        right: 0;
+      }
+      .resize-input {
+        margin-top: 50px;
+
+        display: flex;
+        align-items: center;
+      }
+      .resize-input input {
+        margin-left: 10px;
+      }
+      .repos-input input {
+        margin-right: 10px;
+      }
+      .repos-input span {
+        transform: rotate(180deg);
+      }
+      .input-file {
+        display: none;
+      }
+      .file-btn {
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 20px;
+        background-color: rgba(135, 209, 228, 0.3);
+      }
+      .file-btn i {
+        font-size: 30px;
+        color: rgb(34, 49, 95);
+      }
+      .file-wrap {
+        width: 1050px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="file-wrap">
+        <input type="file" name="" class="input-file" id="" />
+        <button class="file-btn"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="container">
+        <div class="cover-wrap">
+          <div class="box"></div>
+        </div>
+      </div>
+      <div class="resize-input">
+        <span>Drag to resize</span>
+        <input type="range" class="resize" value="0" />
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      const inputFile = document.querySelector(".input-file");
+      const fileBtn = document.querySelector(".file-btn");
+
+      const coverWrap = document.querySelector(".cover-wrap");
+      const box = document.querySelector(".box");
+      const defaultWidth = coverWrap.clientWidth;
+      const inputRange = document.querySelector(".resize");
+      const imgHeight = box.clientHeight;
+      let isDown = false;
+      let prevY = 0;
+      let prevX = 0;
+      let inputTime;
+      let saved = {};
+      fileBtn.addEventListener("click", () => {
+        inputFile.click();
+      });
+      inputFile.addEventListener("input", (e) => {
+        if (inputFile.files.length > 0) console.log(inputFile.files[0]);
+        box.style.top = 0;
+        box.style.left = 0;
+        coverWrap.style.minWidth = defaultWidth + "px";
+        inputRange.value = 0;
+        box.innerHTML = "";
+        box.innerHTML = `
+        <img class="cover" src="/assets/${inputFile.files[0].name}">
+      `;
+        saved.src = inputFile.files[0].name;
+        saveToLocal();
+      });
+      function onReLoad() {
+        const props = JSON.parse(localStorage.getItem("position"));
+        if (
+          props?.offsetTop ||
+          props?.offsetLeft ||
+          props?.minWidth ||
+          props?.resize ||
+          props?.src
+        ) {
+          box.style.top = props.offsetTop + "px";
+          box.style.left = props.offsetLeft + "px";
+          coverWrap.style.minWidth = props.minWidth + "px";
+          inputRange.value = props.resize;
+          box.innerHTML = "";
+          box.innerHTML = `
+        <img class="cover" src="/assets/${props.src}">`;
+          saved = {
+            offsetLeft: props.offsetLeft,
+            offsetTop: props.offsetTop,
+            minWidth: props.minWidth,
+            resize: props.resize,
+            src: props.src,
+          };
+        }
+      }
+      onReLoad();
+      box.addEventListener("mousedown", mousedown);
+      function mousedown(e) {
+        box.classList.add("grabbing");
+        isDown = true;
+        box.addEventListener("mouseleave", mouseup);
+        box.addEventListener("mouseup", mouseup);
+        box.addEventListener("mousemove", mousemove);
+        prevY = e.clientY;
+        prevX = e.clientX;
+      }
+      function mousemove(e) {
+        if (!isDown) return;
+        saved = {
+          offsetTop: box.offsetTop,
+          offsetLeft: box.offsetLeft,
+          minWidth: box.clientWidth,
+          resize: inputRange.value,
+          src: saved.src,
+        };
+        e.preventDefault();
+        let newY = prevY - e.clientY;
+        let newX = prevX - e.clientX;
+        box.style.top = box.offsetTop - newY + "px";
+        box.style.left = box.offsetLeft - newX + "px";
+        prevY = e.clientY;
+        prevX = e.clientX;
+      }
+      function mouseup(e) {
+        box.classList.remove("grabbing");
+        isDown = false;
+        box.removeEventListener("mousemove", mousemove);
+        box.removeEventListener("mouseleave", mouseup);
+        box.removeEventListener("mouseup", mouseup);
+        if (
+          !isDown &&
+          box.offsetLeft + (coverWrap.clientWidth - 1050) / 2 <= 0
+        ) {
+          box.style.transition = ".5s";
+          box.style.left = 0 - (coverWrap.clientWidth - 1050) / 2 + "px";
+          saved.offsetLeft = 0 - (coverWrap.clientWidth - 1050) / 2;
+          let i = setTimeout(() => {
+            box.style.transition = "0s";
+            clearTimeout(i);
+          }, 500);
+        }
+
+        if (!isDown && box.offsetLeft >= (coverWrap.clientWidth - 1050) / 2) {
+          box.style.transition = ".5s";
+          box.style.left = 0 + (coverWrap.clientWidth - 1050) / 2 + "px";
+          saved.offsetLeft = 0 + (coverWrap.clientWidth - 1050) / 2;
+
+          let i = setTimeout(() => {
+            box.style.transition = "0s";
+            clearTimeout(i);
+          }, 500);
+        }
+
+        if (!isDown && box.offsetTop >= 0) {
+          box.style.transition = ".5s";
+          box.style.top = "0px";
+          saved.offsetTop = 0;
+          let i = setTimeout(() => {
+            box.style.transition = "0s";
+            clearTimeout(i);
+          }, 500);
+        }
+        if (box.offsetTop <= -(box.clientHeight - coverWrap.clientHeight)) {
+          box.style.transition = ".5s";
+          box.style.top =
+            -(box.clientHeight - coverWrap.clientHeight - 10) + "px";
+          saved.offsetTop = -(box.clientHeight - coverWrap.clientHeight - 10);
+
+          let i = setTimeout(() => {
+            box.style.transition = "0s";
+            clearTimeout(i);
+          }, 500);
+        }
+        saveToLocal();
+      }
+      inputRange.addEventListener("input", (e) => {
+        if (inputTime) {
+          clearTimeout(inputTime);
+        }
+        const percent = 25 + e.target.value * 5 + "%";
+        coverWrap.style.minWidth = percent;
+        saved.resize = e.target.value;
+        saved.minWidth = coverWrap.clientWidth;
+        inputTime = setTimeout(() => {
+          mouseup();
+          saveToLocal();
+        }, 100);
+      });
+
+      function saveToLocal() {
+        localStorage.setItem(
+          "position",
+          JSON.stringify({
+            ...saved,
+          })
+        );
+      }
+    </script>
+  </body>
+</html>
