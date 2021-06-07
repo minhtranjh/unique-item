@@ -1,4 +1,4 @@
-const array = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5];
+const array = [1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 3, 4, 4, 2, 4, 5, 5];
 //Ex 2: Given an array of integers, find the most
 //repetitions and repetitions.
 //If multiple numbers have the same maximum number of
@@ -7,45 +7,27 @@ const array = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5];
 
 const removeDuplicates = (arr) => {
   let flagRepetition = {};
-  let flagSeen = {};
-
-  
-  //1 Round
-  const newArr = arr.reduce((tempArr, item, index) => {
-    if (flagRepetition[item] === undefined || flagRepetition[item] > 0) {
-      flagRepetition[item] = flagRepetition[item] == undefined ? 1 : flagRepetition[item] + 1;
-      if (flagSeen[item] !== 1) {
-        flagSeen[item] = 1;
-        return [
-          ...tempArr,
-          {
-            value: item,
-            repeatitions: 1,
-          },
-        ];
+  let flagIndex = {};
+  let index = 0;
+  let newArr = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (flagRepetition[arr[i]] === undefined || flagRepetition[arr[i]] > 0) {
+      flagRepetition[arr[i]] =
+        flagRepetition[arr[i]] === undefined ? 1 : flagRepetition[arr[i]] + 1;
+      if (flagRepetition[arr[i]] >= 1) {
+        if (flagRepetition[arr[i]] === 1) {
+          newArr.push({
+            value: arr[i],
+            repetitions: 1,
+          });
+          flagIndex[arr[i]] = index++;
+        }
+        newArr[flagIndex[arr[i]]].repetitions = flagRepetition[arr[i]];
       }
     }
-    return tempArr;
-  }, []);
+  }
 
-
-  //2 Round
-  let maxArr = [];
-  let maxValue = newArr[0].repeatitions;
-  newArr.forEach((item, index) => {
-    newArr[index].repeatitions = flagRepetition[item.value];
-    if (newArr[index].repeatitions >= maxValue) {
-      if (newArr[index].repeatitions > maxValue) {
-        maxValue = newArr[index].repeatitions;
-        maxArr.length = 0;
-      }
-      maxArr.push(newArr[index]);
-    }
-  });
-  return {
-    repetitions : newArr,
-    maxRepetitions : maxArr,
-  };
+  return newArr;
 };
 
-removeDuplicates(array);
+console.log(removeDuplicates(array));
