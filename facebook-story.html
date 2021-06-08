@@ -735,6 +735,7 @@ slideItem[index].classList.add("is-watching");
         const image = document.querySelectorAll(".item");
         image[curIndex].classList.remove("is-active");
         image[curIndex - 1].classList.add("is-active");
+        const slideItem = document.querySelectorAll(".slide-item");
         slideItem[curIndex].classList.remove("is-watching");
         slideItem[curIndex - 1].classList.add("is-watching");
         curIndex--;
