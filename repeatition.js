@@ -1,4 +1,4 @@
-const array = [1, 1, 1, 2, 2, 2, 3, 3, 5, 5, 5];
+const array = [1, 1,1, 1, 2, 2, 2, 3, 3, 5, 5, 5];
 //Ex 2: Given an array of integers, find the most
 //repetitions and repetitions.
 //If multiple numbers have the same maximum number of
@@ -13,7 +13,6 @@ const removeDuplicates = (arr) => {
   let maxValue = 0;
   const maxArr = [];
   for (let i = 0; i < arr.length; i++) {
-    if (flagRepetition[arr[i]] === undefined || flagRepetition[arr[i]] > 0) {
       flagRepetition[arr[i]] =
         flagRepetition[arr[i]] === undefined ? 1 : flagRepetition[arr[i]] + 1;
       if (flagRepetition[arr[i]] >= 1) {
@@ -37,7 +36,6 @@ const removeDuplicates = (arr) => {
         }
       }
     }
-  }
   return maxArr;
 };
 console.log(removeDuplicates(array));
