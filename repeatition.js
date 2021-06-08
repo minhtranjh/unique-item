@@ -5,7 +5,7 @@ const array = [1, 1,1, 1, 2, 2, 2, 3, 3, 5, 5, 5];
 //iterations, export all of them.
 //Maximum 3 rounds, not nested.
 
-const removeDuplicates = (arr) => {
+const findMaxRepeatitionsArray = (arr) => {
   let flagRepetition = {};
   let flagIndex = {};
   let index = 0;
@@ -38,4 +38,4 @@ const removeDuplicates = (arr) => {
     }
   return maxArr;
 };
-console.log(removeDuplicates(array));
+console.log(findMaxRepeatitionsArray(array));
