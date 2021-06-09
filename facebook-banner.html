@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    <title>Facebook cover</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .container {
+        padding-top: 30px;
+        flex-direction: column;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .wrapper {
+        width: 80%;
+        display: flex;
+        height: 300px;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+      }
+      .cover-wrap {
+        width: 100%;
+        min-height: 100%;
+        overflow-y: hidden;
+        position: relative;
+        display: flex;
+        background-color: #222;
+      }
+      .cover-wrap::-webkit-scrollbar {
+        width: 0;
+        background-color: transparent;
+      }
+      .cover {
+        user-select: none;
+        width: 100%;
+        min-height: 100%;
+        position: absolute;
+      }
+     
+      .avatar {
+        width: 200px;
+        z-index: 10000;
+        margin-top: -100px;
+        height: 200px;
+        position: relative;
+        border-radius: 50%;
+      }
+      .avatar::after {
+        z-index: -1;
+        left: -8px;
+        top: -8px;
+        position: absolute;
+        border-radius: 50%;
+        content: "";
+        width: 108%;
+        height: 108%;
+        background-color: rgb(150, 143, 143);
+      }
+      .avatar img {
+        border-radius: 50%;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+      }
+      .name {
+        font-size: 30px;
+        font-weight: bold;
+        margin-top: 20px;
+        text-align: center;
+      }
+      .cover-widget {
+        z-index: 1000000;
+        position: absolute;
+        left: 10px;
+        top: 20px;
+      }
+      .repos {
+        background-color: transparent;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        color: #fff;
+      }
+      .wrapper.is-reposing .repos {
+        display: none;
+      }
+      .repos span {
+        font-size: 14px;
+        margin-left: 10px;
+      }
+      .drag-note {
+        position: absolute;
+        font-size: 15px;
+        z-index: 10000;
+        pointer-events: none;
+        text-align: center;
+        color: #fff;
+        display: none;
+        align-items: center;
+        gap: 10px;
+      }
+      .wrapper.is-reposing .drag-note {
+        display: flex;
+      }
+      .drag-note i {
+        font-size: 30px;
+      }
+      .store-widget {
+        position: absolute;
+        right: 30px;
+        display: none;
+        top: 20px;
+      }
+      .wrapper.is-reposing .store-widget {
+        display: block;
+      }
+      .store-btn {
+        color: #fff;
+        padding: 10px 20px;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.5s;
+        background: rgb(127, 171, 181);
+      }
+      .store-btn:hover {
+        background: rgb(89, 121, 128);
+      }
+      .file-widget {
+        position: absolute;
+        right: 30px;
+        bottom: 10px;
+      }
+      .input-file {
+        display: none;
+      }
+      .save-btn{
+        position: relative;
+      }
+      .fa-spinner{
+        position: absolute;
+        top: 7px;
+        display: none;
+        left: 25px;
+        font-size: 20px;
+        animation: spin 1500ms infinite linear;
+        animation-timing-function: ease-out;
+      }
+      .save-btn.is-loading .fa-spinner{
+        display: block;
+      }
+      @media screen and (max-width :768px) {
+        .wrapper{
+          height: 250px;
+        }
+      }
+      @keyframes spin {
+        from{
+          transform: rotate(0deg);
+        }
+        to{
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="wrapper">
+        <div class="cover-widget">
+          <button class="repos">
+            <i class="fas fa-arrows-alt"></i>
+            <span>Reposition</span>
+          </button>
+        </div>
+        <div class="drag-note">
+          <h1>Drag to reposition</h1>
+          <i class="fas fa-arrows-alt"></i>
+        </div>
+        <div class="cover-wrap"></div>
+        <div class="store-widget">
+          <button class="store-btn cancel-btn">Cancel</button>
+          <button class="store-btn save-btn">Save
+            <i class="fas fa-spinner"></i>
+          </button>
+        </div>
+        <div class="file-widget">
+          <button class="store-btn upload-btn">Upload image</button>
+          <input type="file" name="" class="input-file" id="" />
+        </div>
+      </div>
+      <div class="avatar">
+        <img src="/assets/story4.jpeg" alt="" />
+        <div class="name">Mint Tran</div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/mint-twitter-clone/upload `;
+      const CLOUDINARY_UPLOAD_PRESET = "xqntpxoh";
+      const wrap = document.querySelector(".cover-wrap");
+
+      const reposBtn = document.querySelector(".repos");
+      const wrapper = document.querySelector(".wrapper");
+      const cancelBtn = document.querySelector(".cancel-btn");
+      const uploadBtn = document.querySelector(".upload-btn");
+      const inputFile = document.querySelector(".input-file");
+      const saveBtn = document.querySelector(".save-btn");
+      let localObj = {};
+      let startY = 0;
+      let scrollTop = 0;
+      let defaultWidth = wrap.clientWidth;
+
+      function fetchFromLocal() {
+      const wrap = document.querySelector(".cover-wrap");
+        localObj = JSON.parse(localStorage.getItem("position"));
+        if (localObj) {
+          wrap.innerHTML = `
+            <img src='${localObj.src}' class="cover">
+          `;
+        }
+      }
+     
+      fetchFromLocal();
+      const cover = document.querySelector(".cover");
+      cover.addEventListener("load",()=>{
+        wrap.scrollTop = localObj.scrollTop
+      })
+      reposBtn.addEventListener("click", () => {
+        wrap.addEventListener("mousedown", mousedown);
+        wrapper.classList.add("is-reposing");
+        wrap.style.overflowY = "scroll";
+      });
+      cancelBtn.addEventListener("click", () => {
+        wrap.removeEventListener("mousedown", mousedown);
+        wrapper.classList.remove("is-reposing");
+        wrap.scrollTop = localObj.scrollTop ? localObj.scrollTop : 0;
+
+        wrap.style.overflowY = "hidden";
+      });
+      uploadBtn.addEventListener("click", () => {
+        inputFile.click();
+      });
+      inputFile.addEventListener("input", (e) => {
+        if (e.target.files.length > 0) {
+          const src = URL.createObjectURL(e.target.files[0]);
+          wrap.innerHTML = `
+            <img src='${src}' class="cover">
+          `;
+        }
+      });
+      saveBtn.addEventListener("click", (e) => {
+        saveBtn.classList.add("is-loading")
+        const file = inputFile.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        fetch(CLOUDINARY_URL, {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            const url = response.json();
+            return url;
+          })
+          .then((url) => {
+            inputFile.files.length = 0;
+            wrapper.classList.remove("is-reposing");
+            wrap.style.overflowY = "hidden";
+            const obj = {
+              src: url.secure_url,
+              scrollTop: wrap.scrollTop,
+              isAdded : true,
+            };
+        saveBtn.classList.remove("is-loading")
+
+            saveToLocal(obj);
+          })
+          .catch((err) => console.log(err));
+      });
+      function mousedown(e) {
+        window.addEventListener("mousemove", mousemove);
+        window.addEventListener("mouseup", mouseup);
+        scrollTop = wrap.scrollTop;
+        startY = e.clientY;
+      }
+      function mousemove(e) {
+        e.preventDefault();
+        const dy = e.clientY - startY;
+        wrap.scrollTop = scrollTop - dy;
+      }
+      function mouseup(e) {
+        e.preventDefault();
+        window.removeEventListener("mousemove", mousemove);
+      }
+      function saveToLocal(obj) {
+        localStorage.setItem("position", JSON.stringify(obj));
+      }
+    </script>
+  </body>
+</html>
