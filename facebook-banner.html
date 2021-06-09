@@ -51,7 +51,7 @@
         min-height: 100%;
         position: absolute;
       }
-     
+
       .avatar {
         width: 200px;
         z-index: 10000;
@@ -152,10 +152,11 @@
       .input-file {
         display: none;
       }
-      .save-btn{
+      .save-btn {
         position: relative;
       }
-      .fa-spinner{
+      
+      .fa-spinner {
         position: absolute;
         top: 7px;
         display: none;
@@ -164,19 +165,19 @@
         animation: spin 1500ms infinite linear;
         animation-timing-function: ease-out;
       }
-      .save-btn.is-loading .fa-spinner{
+      .save-btn.is-loading .fa-spinner {
         display: block;
       }
-      @media screen and (max-width :768px) {
-        .wrapper{
+      @media screen and (max-width: 768px) {
+        .wrapper {
           height: 250px;
         }
       }
       @keyframes spin {
-        from{
+        from {
           transform: rotate(0deg);
         }
-        to{
+        to {
           transform: rotate(360deg);
         }
       }
@@ -198,12 +199,15 @@
         <div class="cover-wrap"></div>
         <div class="store-widget">
           <button class="store-btn cancel-btn">Cancel</button>
-          <button class="store-btn save-btn">Save
+          <button class="store-btn save-btn">
+            Save
             <i class="fas fa-spinner"></i>
           </button>
         </div>
         <div class="file-widget">
-          <button class="store-btn upload-btn">Upload image</button>
+          <button class="store-btn upload-btn">
+            <i class="fas fa-upload"></i>
+          </button>
           <input type="file" name="" class="input-file" id="" />
         </div>
       </div>
@@ -216,20 +220,20 @@
       const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/mint-twitter-clone/upload `;
       const CLOUDINARY_UPLOAD_PRESET = "xqntpxoh";
       const wrap = document.querySelector(".cover-wrap");
-
       const reposBtn = document.querySelector(".repos");
       const wrapper = document.querySelector(".wrapper");
       const cancelBtn = document.querySelector(".cancel-btn");
       const uploadBtn = document.querySelector(".upload-btn");
       const inputFile = document.querySelector(".input-file");
       const saveBtn = document.querySelector(".save-btn");
+
       let localObj = {};
       let startY = 0;
       let scrollTop = 0;
       let defaultWidth = wrap.clientWidth;
 
       function fetchFromLocal() {
-      const wrap = document.querySelector(".cover-wrap");
+        const wrap = document.querySelector(".cover-wrap");
         localObj = JSON.parse(localStorage.getItem("position"));
         if (localObj) {
           wrap.innerHTML = `
@@ -237,64 +241,97 @@
           `;
         }
       }
-     
       fetchFromLocal();
+
       const cover = document.querySelector(".cover");
-      cover.addEventListener("load",()=>{
-        wrap.scrollTop = localObj.scrollTop
-      })
-      reposBtn.addEventListener("click", () => {
+      cover.addEventListener("load", onLoadCover);
+      function onLoadCover() {
+        wrap.scrollTop = localObj.scrollTop;
+      }
+      ////
+
+      reposBtn.addEventListener("click", reposition);
+      function reposition() {
         wrap.addEventListener("mousedown", mousedown);
         wrapper.classList.add("is-reposing");
         wrap.style.overflowY = "scroll";
-      });
-      cancelBtn.addEventListener("click", () => {
+      }
+      ////
+
+      cancelBtn.addEventListener("click", cancelRepose);
+      function cancelRepose() {
         wrap.removeEventListener("mousedown", mousedown);
         wrapper.classList.remove("is-reposing");
         wrap.scrollTop = localObj.scrollTop ? localObj.scrollTop : 0;
-
         wrap.style.overflowY = "hidden";
-      });
+        localObj?.src
+          ? (wrap.innerHTML = `
+            <img src='${localObj.src}' class="cover">
+          `)
+          : "";
+      }
+      //////
+
       uploadBtn.addEventListener("click", () => {
         inputFile.click();
       });
-      inputFile.addEventListener("input", (e) => {
+
+      inputFile.addEventListener("input", onPickFile);
+      function onPickFile(e) {
         if (e.target.files.length > 0) {
           const src = URL.createObjectURL(e.target.files[0]);
           wrap.innerHTML = `
             <img src='${src}' class="cover">
           `;
+          reposition();
         }
-      });
-      saveBtn.addEventListener("click", (e) => {
-        saveBtn.classList.add("is-loading")
+      }
+      saveBtn.addEventListener("click", onSave);
+      function onSave(e) {
+        saveBtn.classList.add("is-loading");
         const file = inputFile.files[0];
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-        fetch(CLOUDINARY_URL, {
-          method: "POST",
-          body: formData,
-        })
-          .then((response) => {
-            const url = response.json();
-            return url;
-          })
-          .then((url) => {
-            inputFile.files.length = 0;
-            wrapper.classList.remove("is-reposing");
-            wrap.style.overflowY = "hidden";
-            const obj = {
-              src: url.secure_url,
-              scrollTop: wrap.scrollTop,
-              isAdded : true,
-            };
-        saveBtn.classList.remove("is-loading")
+        if (file) {
+          cancelBtn.style.display = "none"
 
-            saveToLocal(obj);
+
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+          fetch(CLOUDINARY_URL, {
+            method: "POST",
+            body: formData,
           })
-          .catch((err) => console.log(err));
-      });
+            .then((response) => {
+              const url = response.json();
+              return url;
+            })
+            .then((url) => {
+              inputFile.files.length = 0;
+              const obj = {
+                src: url.secure_url,
+                scrollTop: wrap.scrollTop,
+              };
+              saveToLocal(obj);
+
+              wrapper.classList.remove("is-reposing");
+              wrap.style.overflowY = "hidden";
+              cancelBtn.style.display = "initial"
+
+              saveBtn.classList.remove("is-loading");
+            })
+            .catch((err) => console.log(err));
+        } else {
+          const obj = {
+            src: localObj.src,
+            scrollTop: wrap.scrollTop,
+          };
+          saveToLocal(obj);
+
+          wrapper.classList.remove("is-reposing");
+          wrap.style.overflowY = "hidden";
+          saveBtn.classList.remove("is-loading");
+        }
+      }
       function mousedown(e) {
         window.addEventListener("mousemove", mousemove);
         window.addEventListener("mouseup", mouseup);
