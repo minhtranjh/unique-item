@@ -29,6 +29,7 @@
         width: 80%;
         display: flex;
         height: 300px;
+        transition: all 0.3s;
         position: relative;
         align-items: center;
         justify-content: center;
@@ -36,7 +37,7 @@
       .cover-wrap {
         width: 100%;
         min-height: 100%;
-        overflow-y: hidden;
+        overflow: hidden;
         position: relative;
         display: flex;
         background-color: #222;
@@ -89,20 +90,32 @@
         left: 10px;
         top: 20px;
       }
-      .repos {
+      .repos,
+      .resize {
         background-color: transparent;
         outline: none;
         border: none;
         cursor: pointer;
         display: flex;
+        margin: 25px 0;
         align-items: center;
         font-size: 25px;
         color: #fff;
       }
+      .resize{
+        display: none;
+      }
+      .wrapper.is-reposing .resize{
+        display: initial;
+      }
+      .input-range {
+        margin-left: 10px;
+      }
       .wrapper.is-reposing .repos {
         display: none;
       }
-      .repos span {
+      .repos span,
+      .resize span {
         font-size: 14px;
         margin-left: 10px;
       }
@@ -155,7 +168,7 @@
       .save-btn {
         position: relative;
       }
-      
+
       .fa-spinner {
         position: absolute;
         top: 7px;
@@ -171,6 +184,7 @@
       @media screen and (max-width: 768px) {
         .wrapper {
           height: 250px;
+          width: 100%;
         }
       }
       @keyframes spin {
@@ -190,6 +204,10 @@
           <button class="repos">
             <i class="fas fa-arrows-alt"></i>
             <span>Reposition</span>
+          </button>
+          <button class="resize">
+            <i class="fas fa-expand"></i>
+            <input class="input-range" value="0" type="range" />
           </button>
         </div>
         <div class="drag-note">
@@ -226,12 +244,14 @@
       const uploadBtn = document.querySelector(".upload-btn");
       const inputFile = document.querySelector(".input-file");
       const saveBtn = document.querySelector(".save-btn");
+      const inputRange = document.querySelector(".input-range");
 
       let localObj = {};
       let startY = 0;
+      let startX = 0;
+      let scrollLeft = 0;
       let scrollTop = 0;
-      let defaultWidth = wrap.clientWidth;
-
+      let widthPercent = 100;
       function fetchFromLocal() {
         const wrap = document.querySelector(".cover-wrap");
         localObj = JSON.parse(localStorage.getItem("position"));
@@ -243,10 +263,21 @@
       }
       fetchFromLocal();
 
+      inputRange.addEventListener("input", (e) => {
+        const cover = document.querySelector(".cover");
+        const value = parseInt(e.target.value) * 2;
+        cover.style.width = 100 + value + "%";
+        widthPercent = 100 + value;
+      });
+      ///
       const cover = document.querySelector(".cover");
-      cover.addEventListener("load", onLoadCover);
+      cover && cover.addEventListener("load", onLoadCover);
       function onLoadCover() {
+        cover.style.width = localObj.width + "%";
         wrap.scrollTop = localObj.scrollTop;
+        wrap.scrollLeft = localObj.scrollLeft;
+        widthPercent = localObj.width;
+        inputRange.value = localObj.resizeValue;
       }
       ////
 
@@ -254,21 +285,31 @@
       function reposition() {
         wrap.addEventListener("mousedown", mousedown);
         wrapper.classList.add("is-reposing");
-        wrap.style.overflowY = "scroll";
+        wrap.style.overflow = "auto";
       }
       ////
 
       cancelBtn.addEventListener("click", cancelRepose);
       function cancelRepose() {
-        wrap.removeEventListener("mousedown", mousedown);
+        if (localObj) {
+          cover.src = localObj.src;
+          cover.style.width = localObj.width + "%";
+          wrap.scrollTop = localObj.scrollTop;
+          wrap.scrollLeft = localObj.scrollLeft;
+          inputRange.value = localObj.resizeValue;
+        }
+        else
+        {
+          const cover = document.querySelector(".cover");
+          cover.remove();
+          wrap.scrollTop = 0;
+          wrap.scrollLeft = 0;
+          inputRange.value = 0;
+        }
+
+        wrap.style.overflow = "hidden";
         wrapper.classList.remove("is-reposing");
-        wrap.scrollTop = localObj.scrollTop ? localObj.scrollTop : 0;
-        wrap.style.overflowY = "hidden";
-        localObj?.src
-          ? (wrap.innerHTML = `
-            <img src='${localObj.src}' class="cover">
-          `)
-          : "";
+        wrap.removeEventListener("mousedown", mousedown);
       }
       //////
 
@@ -291,8 +332,7 @@
         saveBtn.classList.add("is-loading");
         const file = inputFile.files[0];
         if (file) {
-          cancelBtn.style.display = "none"
-
+          cancelBtn.style.display = "none";
 
           const formData = new FormData();
           formData.append("file", file);
@@ -310,13 +350,15 @@
               const obj = {
                 src: url.secure_url,
                 scrollTop: wrap.scrollTop,
+                scrollLeft: wrap.scrollLeft,
+                width: widthPercent,
+                resizeValue: inputRange.value,
               };
               saveToLocal(obj);
 
               wrapper.classList.remove("is-reposing");
               wrap.style.overflowY = "hidden";
-              cancelBtn.style.display = "initial"
-
+              cancelBtn.style.display = "initial";
               saveBtn.classList.remove("is-loading");
             })
             .catch((err) => console.log(err));
@@ -324,11 +366,14 @@
           const obj = {
             src: localObj.src,
             scrollTop: wrap.scrollTop,
+            scrollLeft: wrap.scrollLeft,
+            width: widthPercent,
+            resizeValue: inputRange.value,
           };
           saveToLocal(obj);
 
           wrapper.classList.remove("is-reposing");
-          wrap.style.overflowY = "hidden";
+          wrap.style.overflow = "hidden";
           saveBtn.classList.remove("is-loading");
         }
       }
@@ -336,12 +381,17 @@
         window.addEventListener("mousemove", mousemove);
         window.addEventListener("mouseup", mouseup);
         scrollTop = wrap.scrollTop;
+        scrollLeft = wrap.scrollLeft;
         startY = e.clientY;
+        startX = e.clientX;
       }
       function mousemove(e) {
         e.preventDefault();
         const dy = e.clientY - startY;
+        const dx = e.clientX - startX;
+
         wrap.scrollTop = scrollTop - dy;
+        wrap.scrollLeft = scrollLeft - dx;
       }
       function mouseup(e) {
         e.preventDefault();
