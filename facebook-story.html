@@ -525,6 +525,7 @@
       let runningState = true;
       let start;
       let remaining = 5000;
+      let thumbRemaining = 5000;
       let computeStyle;
       function addIsSeen() {
         storiesArr.map((item) => (item.isSeen = false));
@@ -540,9 +541,9 @@
         }, []);
         const notSeenArr = storiesArr.filter((item) => !item.isSeen);
         storiesArr = [...notSeenArr, ...seenArr];
-         curIndex = storiesArr[storyIndex].isWatching
-        ? storiesArr[storyIndex].isWatching
-        : 0;
+        curIndex = storiesArr[storyIndex].isWatching
+          ? storiesArr[storyIndex].isWatching
+          : 0;
       }
       //On mount
       addIsSeen();
@@ -588,10 +589,10 @@
         const tempIndex = storiesArr[storyIndex].isWatching;
         curIndex = tempIndex ? tempIndex : 0;
         remaining = 5000;
-        start = 0;
+        thumbRemaining = 5000;
+        start = Date.now();
         renderStory();
       }
-      let loadVideoTimeout;
       function renderStory() {
         saveToLocal(storiesArr);
         wrapper.innerHTML = `
@@ -625,11 +626,11 @@
         </div>
       </div>`;
         if (storiesArr[storyIndex].images[curIndex].type === "video") {
-            const item = document.querySelectorAll(".item");
-            const video = item[curIndex].querySelector(".video");
-            video.addEventListener("loadeddata", () => {
-              storyRun();
-            });
+          const item = document.querySelectorAll(".item");
+          const video = item[curIndex].querySelector(".video");
+          video.addEventListener("loadeddata", () => {
+            storyRun();
+          });
         } else {
           storyRun();
         }
@@ -638,30 +639,33 @@
       //on Mount
       renderStory();
       const lineWrap = document.querySelectorAll(".line-wrap");
-
-      function storyRun() {
-        if (storiesArr[storyIndex].images[curIndex].type === "video") {
-          const item = document.querySelectorAll(".item");
-          const video = item[curIndex].querySelector(".video");
-          remaining = video.duration * 1000;
-          video.play();
+      function storyRun(type) {
+        console.log("Remaining", remaining);
+        if (!type) {
+          if (storiesArr[storyIndex].images[curIndex].type === "video") {
+            const item = document.querySelectorAll(".item");
+            const video = item[curIndex].querySelector(".video");
+            remaining = video.duration * 1000;
+            thumbRemaining = video.duration * 1000;
+            video.play();
+          }
         }
         const passed = document.querySelectorAll(".passed");
         passed[curIndex].style.animation = `thumb ${Math.round(
-          remaining / 1000
+          (thumbRemaining + 300) / 1000
         )}s linear`;
 
         start = Date.now();
         itemInterval = setTimeout(() => {
           nextImage();
-        }, Math.round(remaining));
+        }, Math.round(remaining - 100));
       }
 
       function playAndPause() {
         const passed = document.querySelectorAll(".passed");
         const story = document.querySelector(".story");
-        clearTimeout(itemInterval);
         if (runningState) {
+          clearTimeout(itemInterval);
           if (storiesArr[storyIndex].images[curIndex].type === "video") {
             const item = document.querySelectorAll(".item");
             const video = item[curIndex].querySelector(".video");
@@ -681,10 +685,12 @@
           passed[curIndex].style.animationPlayState = "running";
           runningState = true;
           start = Date.now();
-          storyRun();
+          storyRun("afterPause");
         }
       }
       function nextImage() {
+        const story = document.querySelector(".story");
+        story.classList.remove("pause");
         if (
           storyIndex >= storiesArr.length - 1 &&
           curIndex >= storiesArr[storyIndex].images.length - 1
@@ -692,12 +698,11 @@
           return;
         }
         remaining = 5000;
+        thumbRemaining = 5000;
         clearTimeout(itemInterval);
-        clearTimeout(loadVideoTimeout);
         if (curIndex >= storiesArr[storyIndex].images.length - 1) {
           storiesArr[storyIndex].isSeen = true;
           const slideItem = document.querySelectorAll(".slide-item");
-
           slideItem[storyIndex].classList.add("is-seen");
           slideItem[storyIndex].classList.remove("is-watching");
           slideItem[storyIndex + 1].classList.add("is-watching");
@@ -719,7 +724,7 @@
       }
       function prevImage() {
         remaining = 5000;
-        clearTimeout(loadVideoTimeout);
+        thumbRemaining = 5000;
         clearInterval(itemInterval);
         if (storyIndex === 0 && curIndex === 0) {
           renderStory();
