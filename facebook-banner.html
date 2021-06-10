@@ -22,6 +22,7 @@
         padding-top: 30px;
         flex-direction: column;
         display: flex;
+        transition: 0.3s;
         align-items: center;
         justify-content: center;
       }
@@ -29,6 +30,8 @@
         width: 80%;
         height: 100%;
         display: flex;
+        height: 300px;
+        background-color: #222;
         transition: all 0.3s;
         position: relative;
         align-items: center;
@@ -42,6 +45,7 @@
       }
       .cover-wrap::-webkit-scrollbar {
         width: 0;
+        height: 0;
         background-color: transparent;
       }
       .cover {
@@ -99,10 +103,10 @@
         font-size: 25px;
         color: #fff;
       }
-      .resize{
+      .resize {
         display: none;
       }
-      .wrapper.is-reposing .resize{
+      .wrapper.is-reposing .resize {
         display: initial;
       }
       .input-range {
@@ -183,6 +187,9 @@
           height: 250px;
           width: 100%;
         }
+        .container {
+          padding-top: 0;
+        }
       }
       @keyframes spin {
         from {
@@ -242,7 +249,7 @@
       const inputFile = document.querySelector(".input-file");
       const saveBtn = document.querySelector(".save-btn");
       const inputRange = document.querySelector(".input-range");
-
+      const resizeBtn = document.querySelector(".resize");
       let localObj = {};
       let startY = 0;
       let startX = 0;
@@ -294,9 +301,7 @@
           wrap.scrollTop = localObj.scrollTop;
           wrap.scrollLeft = localObj.scrollLeft;
           inputRange.value = localObj.resizeValue;
-        }
-        else
-        {
+        } else {
           const cover = document.querySelector(".cover");
           cover.remove();
           wrap.scrollTop = 0;
@@ -328,9 +333,11 @@
       function onSave(e) {
         saveBtn.classList.add("is-loading");
         const file = inputFile.files[0];
+        wrap.removeEventListener("mousedown", mousedown);
         if (file) {
           cancelBtn.style.display = "none";
-
+          wrap.style.overflow = "hidden";
+          resizeBtn.style.display = "none";
           const formData = new FormData();
           formData.append("file", file);
           formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
@@ -354,8 +361,8 @@
               saveToLocal(obj);
 
               wrapper.classList.remove("is-reposing");
-              wrap.style.overflowY = "hidden";
               cancelBtn.style.display = "initial";
+              resizeBtn.style.display = "initial";
               saveBtn.classList.remove("is-loading");
             })
             .catch((err) => console.log(err));
