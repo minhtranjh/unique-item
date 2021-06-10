@@ -514,10 +514,21 @@
           ],
         },
       ];
+      const wrapper = document.querySelector(".wrapper");
+      const slider = document.querySelector(".story-slider");
+      const slideBtnLeft = document.querySelector(".btn-left");
+      const slideBtnRight = document.querySelector(".btn-right");
+      let slideItem;
+      let storyIndex = 0;
+      let curIndex = 0;
+      let itemInterval = 0;
+      let runningState = true;
+      let start;
+      let remaining = 5000;
+      let computeStyle;
       function addIsSeen() {
         storiesArr.map((item) => (item.isSeen = false));
       }
-      addIsSeen();
       function parseArrayToPreviousSeen() {
         const arrLocal = JSON.parse(localStorage.getItem("storiesArr"));
         storiesArr = arrLocal && arrLocal.length > 0 ? arrLocal : storiesArr;
@@ -529,29 +540,19 @@
         }, []);
         const notSeenArr = storiesArr.filter((item) => !item.isSeen);
         storiesArr = [...notSeenArr, ...seenArr];
-      }
-      parseArrayToPreviousSeen();
-      const wrapper = document.querySelector(".wrapper");
-      const slider = document.querySelector(".story-slider");
-      const slideBtnLeft = document.querySelector(".btn-left");
-      const slideBtnRight = document.querySelector(".btn-right");
-      let slideItem;
-      let storyIndex = 0;
-      let curIndex = storiesArr[storyIndex].isWatching
+         curIndex = storiesArr[storyIndex].isWatching
         ? storiesArr[storyIndex].isWatching
         : 0;
-      let itemInterval = 0;
-      let runningState = true;
-      let start;
-      let remaining = 5000;
-      let computeStyle;
-
+      }
+      //On mount
+      addIsSeen();
+      parseArrayToPreviousSeen();
       function renderStorySlider() {
         storiesArr.forEach((item, index) => {
           slider.innerHTML += `
             <div onclick="chooseStory(${index})" class="${
             item.isSeen ? "is-seen" : ""
-          } ${index===0 ? "is-watching" : ""}  slide-item">
+          } ${index === 0 ? "is-watching" : ""}  slide-item">
               <img class="avatar" src="${item.avatar}">
             </div>
           `;
@@ -580,9 +581,9 @@
         clearTimeout(itemInterval);
         const slideItem = document.querySelectorAll(".slide-item");
 
-slideItem[storyIndex].classList.remove("is-watching");
+        slideItem[storyIndex].classList.remove("is-watching");
         storyIndex = index;
-slideItem[index].classList.add("is-watching");
+        slideItem[index].classList.add("is-watching");
 
         const tempIndex = storiesArr[storyIndex].isWatching;
         curIndex = tempIndex ? tempIndex : 0;
@@ -624,13 +625,11 @@ slideItem[index].classList.add("is-watching");
         </div>
       </div>`;
         if (storiesArr[storyIndex].images[curIndex].type === "video") {
-          loadVideoTimeout = setTimeout(() => {
             const item = document.querySelectorAll(".item");
             const video = item[curIndex].querySelector(".video");
             video.addEventListener("loadeddata", () => {
               storyRun();
             });
-          }, 0);
         } else {
           storyRun();
         }
@@ -697,7 +696,7 @@ slideItem[index].classList.add("is-watching");
         clearTimeout(loadVideoTimeout);
         if (curIndex >= storiesArr[storyIndex].images.length - 1) {
           storiesArr[storyIndex].isSeen = true;
-        const slideItem = document.querySelectorAll(".slide-item");
+          const slideItem = document.querySelectorAll(".slide-item");
 
           slideItem[storyIndex].classList.add("is-seen");
           slideItem[storyIndex].classList.remove("is-watching");
@@ -709,10 +708,10 @@ slideItem[index].classList.add("is-watching");
           return;
         }
         const image = document.querySelectorAll(".item");
-      
+
         image[curIndex].classList.remove("is-active");
         image[curIndex + 1].classList.add("is-active");
-        
+
         curIndex++;
         storiesArr[storyIndex].isWatching = curIndex;
 

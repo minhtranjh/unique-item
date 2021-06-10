@@ -27,7 +27,7 @@ const convertToUnique3 = (arr) => {
 const convertToUnique4 = (arr) => {
   const newArr = arr.reduce((tempArr, item) => {
     if (!tempArr.includes(item)) {
-      return [...tempArr, item];
+      return tempArr.push(item)
     }
     return tempArr;
   }, []);
@@ -49,7 +49,6 @@ const convertToUnique5 = (arr) => {
 
 const convertToUnique6 = (arr) => {
   const mapObject = new Map(arr.map((x) => [x, x])).values();
-  console.log(mapObject);
   return [...mapObject];
 };
 
