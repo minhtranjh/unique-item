@@ -579,7 +579,7 @@
       });
       renderStorySlider();
       function chooseStory(index) {
-        clearTimeout(itemInterval);
+        if (itemInterval) clearTimeout(itemInterval);
         const slideItem = document.querySelectorAll(".slide-item");
 
         slideItem[storyIndex].classList.remove("is-watching");
@@ -616,12 +616,12 @@
                item.type === "img"
                  ? `<img src="${item.src}" alt="" />`
                  : `
-            <video  class="video" >
+            <video class="video" >
                 <source src="${item.src}" type="video/mp4">
             </video> `
              }
           </div>`;
-            })}
+            }).join('\n')}
 
         </div>
       </div>`;
@@ -640,14 +640,24 @@
       renderStory();
       const lineWrap = document.querySelectorAll(".line-wrap");
       function storyRun(type) {
-        console.log("Remaining", remaining);
         if (!type) {
           if (storiesArr[storyIndex].images[curIndex].type === "video") {
             const item = document.querySelectorAll(".item");
             const video = item[curIndex].querySelector(".video");
             remaining = video.duration * 1000;
             thumbRemaining = video.duration * 1000;
-            video.play();
+            if (video !== undefined) {
+              video
+                .play()
+                .then(() => {
+                  video.play();
+                  const story = document.querySelector(".story");
+                  story.classList.remove("pause");
+                })
+                .catch((error) => {
+                  playAndPause();
+                });
+            }
           }
         }
         const passed = document.querySelectorAll(".passed");
@@ -664,8 +674,8 @@
       function playAndPause() {
         const passed = document.querySelectorAll(".passed");
         const story = document.querySelector(".story");
+        if (itemInterval) clearTimeout(itemInterval);
         if (runningState) {
-          clearTimeout(itemInterval);
           if (storiesArr[storyIndex].images[curIndex].type === "video") {
             const item = document.querySelectorAll(".item");
             const video = item[curIndex].querySelector(".video");
@@ -689,8 +699,6 @@
         }
       }
       function nextImage() {
-        const story = document.querySelector(".story");
-        story.classList.remove("pause");
         if (
           storyIndex >= storiesArr.length - 1 &&
           curIndex >= storiesArr[storyIndex].images.length - 1
@@ -699,7 +707,7 @@
         }
         remaining = 5000;
         thumbRemaining = 5000;
-        clearTimeout(itemInterval);
+        if (itemInterval) clearTimeout(itemInterval);
         if (curIndex >= storiesArr[storyIndex].images.length - 1) {
           storiesArr[storyIndex].isSeen = true;
           const slideItem = document.querySelectorAll(".slide-item");
@@ -725,7 +733,7 @@
       function prevImage() {
         remaining = 5000;
         thumbRemaining = 5000;
-        clearInterval(itemInterval);
+        if (itemInterval) clearTimeout(itemInterval);
         if (storyIndex === 0 && curIndex === 0) {
           renderStory();
           return;
