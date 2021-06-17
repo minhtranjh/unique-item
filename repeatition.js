@@ -1,31 +1,24 @@
-const array = [1, 2, 3, 3, 4, 4, 5];
+const array = [1, 2, 3, 3, 3, 3, 3, 4,4,4,4, 4, 5];
 //Ex 2: Given an array of integers, find the most
 //repetitions and repetitions.
 //If multiple numbers have the same maximum number of
 //iterations, export all of them.
 //Maximum 3 rounds, not nested.
-
 const findMaxRepeatitionsArray = (arr) => {
-  let flagRepetition = {};
-  let flagIndex = {};
-  let index = 0;
-  let maxValue = 0;
-  const maxArr = [];
-  arr.reduce((newArr, item) => {
-    flagRepetition[item] =
-      flagRepetition[item] === undefined ? 1 : flagRepetition[item] + 1;
-    if (flagRepetition[item] === 1) {
-      newArr.push({ value: item, repetitions: 1 });
-      flagIndex[item] = index++;
-    }
-    newArr[flagIndex[item]].repetitions = flagRepetition[item];
-    if (maxValue <= newArr[flagIndex[item]].repetitions) {
-      if (maxValue !== newArr[flagIndex[item]].repetitions) maxArr.length = 0;
-      maxValue = newArr[flagIndex[item]].repetitions;
-      maxArr.push(newArr[flagIndex[item]]);
-    }
-    return newArr;
-  }, []);
-  return maxArr;
+  const result = arr.reduce(
+    (acc, item) => {
+      acc.repeatList[item] =
+        acc.repeatList[item] === undefined ? 1 : acc.repeatList[item] + 1;
+      acc.repeatList[item] = acc.repeatList[item];
+      if (acc.max <= acc.repeatList[item]) {
+        if (acc.max !== acc.repeatList[item]) acc.maxList.length = 0;
+        acc.max = acc.repeatList[item];
+        acc.maxList.push({ value: item, repeatition: acc.repeatList[item] });
+      }
+      return acc;
+    },
+    { max: 0, maxList: [], repeatList: {} }
+  );
+  return result.maxList;
 };
 console.log(findMaxRepeatitionsArray(array));
