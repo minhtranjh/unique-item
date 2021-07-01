@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    <title>Facebook cover</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+      }
+
+      .container {
+        padding-top: 30px;
+        flex-direction: column;
+        display: flex;
+        transition: 0.3s;
+        align-items: center;
+        justify-content: center;
+      }
+      .wrapper {
+        width: 80%;
+        height: 100%;
+        display: flex;
+        height: 300px;
+        background-color: #222;
+        transition: all 0.3s;
+        position: relative;
+        align-items: center;
+        justify-content: center;
+      }
+      .cover-wrap {
+        width: 100%;
+        max-height: 300px;
+        overflow: hidden;
+        background-color: #222;
+      }
+      .cover-wrap::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        background-color: transparent;
+      }
+      .cover {
+        user-select: none;
+        width: 100%;
+        min-height: 100%;
+      }
+
+      .avatar {
+        width: 200px;
+        z-index: 10000;
+        margin-top: -100px;
+        height: 200px;
+        position: relative;
+        border-radius: 50%;
+      }
+      .avatar::after {
+        z-index: -1;
+        left: -8px;
+        top: -8px;
+        position: absolute;
+        border-radius: 50%;
+        content: "";
+        width: 108%;
+        height: 108%;
+        background-color: rgb(150, 143, 143);
+      }
+      .avatar img {
+        border-radius: 50%;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+      }
+      .name {
+        font-size: 30px;
+        font-weight: bold;
+        margin-top: 20px;
+        text-align: center;
+      }
+      .cover-widget {
+        z-index: 1000000;
+        position: absolute;
+        left: 10px;
+        top: 20px;
+      }
+      .repos,
+      .resize {
+        background-color: transparent;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        margin: 25px 0;
+        align-items: center;
+        font-size: 25px;
+        color: #fff;
+      }
+      .resize {
+        display: none;
+        padding: 20px 0;
+      }
+      .wrapper.is-reposing .resize {
+        display: flex;
+      }
+
+      .input-range {
+        align-items: center;
+        display: flex;
+        margin-left: 10px;
+        height: 1.5rem;
+        width: 150px;
+      }
+
+      .left {
+        height: 4px;
+
+        /* Colors */
+        background-color: #fff;
+      }
+
+      .knob {
+        height: 10px;
+        width: 10px;
+
+        /* Rounded border */
+        border-radius: 9999px;
+
+        /* Colors */
+        background-color: #fff;
+      }
+
+      .right {
+        flex: 1;
+        height: 4px;
+
+        background-color: rgb(121, 121, 121);
+      }
+
+      .wrapper.is-reposing .repos {
+        display: none;
+      }
+      .repos span,
+      .resize span {
+        font-size: 14px;
+        margin-left: 10px;
+      }
+      .drag-note {
+        position: absolute;
+        font-size: 15px;
+        z-index: 10000;
+        pointer-events: none;
+        text-align: center;
+        color: #fff;
+        display: none;
+        align-items: center;
+        gap: 10px;
+      }
+      .wrapper.is-reposing .drag-note {
+        display: flex;
+      }
+      .drag-note i {
+        font-size: 30px;
+      }
+      .store-widget {
+        position: absolute;
+        right: 30px;
+        display: none;
+        top: 20px;
+      }
+      .wrapper.is-reposing .store-widget {
+        display: block;
+      }
+      .store-btn {
+        color: #fff;
+        padding: 10px 20px;
+        outline: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.5s;
+        background: rgb(127, 171, 181);
+      }
+      .store-btn:hover {
+        background: rgb(89, 121, 128);
+      }
+      .file-widget {
+        position: absolute;
+        right: 30px;
+        bottom: 10px;
+      }
+      .input-file {
+        display: none;
+      }
+      .save-btn {
+        position: relative;
+      }
+
+      .fa-spinner {
+        position: absolute;
+        top: 7px;
+        display: none;
+        left: 25px;
+        font-size: 20px;
+        animation: spin 1500ms infinite linear;
+        animation-timing-function: ease-out;
+      }
+      .save-btn.is-loading .fa-spinner {
+        display: block;
+      }
+      @media screen and (max-width: 768px) {
+        .wrapper {
+          height: 250px;
+          width: 100%;
+        }
+        .container {
+          padding-top: 0;
+        }
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="wrapper">
+        <div class="cover-widget">
+          <button class="repos">
+            <i class="fas fa-arrows-alt"></i>
+            <span>Reposition</span>
+          </button>
+          <button class="resize">
+            <i class="fas fa-expand"></i>
+            <div class="input-range">
+              <div class="left"></div>
+              <div class="knob" id="knob"></div>
+              <div class="right"></div>
+            </div>
+          </button>
+        </div>
+        <div class="drag-note">
+          <h1>Drag to reposition</h1>
+          <i class="fas fa-arrows-alt"></i>
+        </div>
+        <div class="cover-wrap"></div>
+        <div class="store-widget">
+          <button class="store-btn cancel-btn">Cancel</button>
+          <button class="store-btn save-btn">
+            Save
+            <i class="fas fa-spinner"></i>
+          </button>
+        </div>
+        <div class="file-widget">
+          <button class="store-btn upload-btn">
+            <i class="fas fa-upload"></i>
+          </button>
+          <input type="file" name="" class="input-file" id="" />
+        </div>
+      </div>
+      <div class="avatar">
+        <img src="/assets/story4.jpeg" alt="" />
+        <div class="name">Mint Tran</div>
+      </div>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
+</html>
