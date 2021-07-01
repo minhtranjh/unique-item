@@ -1,4 +1,4 @@
-const array = [1, 2, 3, 3, 3, 3, 3, 4,4,4,4, 4, 5];
+const array = [1, 2, 3, 3, 3, 3, 3, 4,4,4,4, 4, 5,5,5,5,5,5,5];
 //Ex 2: Given an array of integers, find the most
 //repetitions and repetitions.
 //If multiple numbers have the same maximum number of
