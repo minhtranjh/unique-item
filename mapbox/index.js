@@ -1,30 +1,15 @@
+const loadingElement = document.querySelector(".fa-spinner");
+const suggestionsElement = document.querySelector(".suggestions");
+const searchInputElement = document.getElementById("search-input");
+const backToBtnElement = document.querySelector(".back-to-btn");
+
 let map;
-const loading = document.querySelector(".fa-spinner");
-const suggestions = document.querySelector(".suggestions");
-const input = document.getElementById("search-input");
-const backToBtn = document.querySelector(".back-to-btn");
 let currentLocation;
-mapboxgl.accessToken = `pk.eyJ1IjoibWludHRyYW45MDAxIiwiYSI6ImNrcGhwM2R2ZjA1ajQycG43dDc1Nmo5dGwifQ.xFeLkx7CYf2NbuU01uXt0g`;
-navigator.geolocation.getCurrentPosition(successCb, errorCb, {
-  enableHighAccuracy: true,
-});
-function successCb(position) {
-  setupMap([position.coords.longitude, position.coords.latitude]);
-  currentLocation = [
-    position.coords.longitude,
-    position.coords.latitude,
-    (type = "locality"),
-  ];
-}
-function errorCb(error) {
-  console.log(error);
-  setupMap([106.63333, 10.81667], 10);
-}
-let marker = new mapboxgl.Marker({
-  color: "#f21f22",
-  draggable: true,
-});
-function setupMap(center, zoom = 18) {
+let isFetching = false;
+let typingTimeout;
+let fetchTimeout;
+
+function configMapBox(center, zoom = 18) {
   map = new mapboxgl.Map({
     container: "map",
     style: "mapbox://styles/mapbox/streets-v11",
@@ -40,12 +25,39 @@ function setupMap(center, zoom = 18) {
       },
     });
     map.on("click", (e) => {
-      viewInfoCard(e.lngLat.lng, e.lngLat.lat);
+      viewLocationInfoCard(e.lngLat.lng, e.lngLat.lat);
     });
   });
 }
-async function viewInfoCard(lng, lat) {
-  const result = await fetchByCoordinates(lng, lat);
+function onSetupMapBoxSuccess(position) {
+  configMapBox([position.coords.longitude, position.coords.latitude]);
+  currentLocation = [
+    position.coords.longitude,
+    position.coords.latitude,
+    (type = "locality"),
+  ];
+}
+function onSetupMapBoxFail(error) {
+  setupMap([106.63333, 10.81667], 10);
+}
+function mapBoxSetUp() {
+  mapboxgl.accessToken = `pk.eyJ1IjoibWludHRyYW45MDAxIiwiYSI6ImNrcGhwM2R2ZjA1ajQycG43dDc1Nmo5dGwifQ.xFeLkx7CYf2NbuU01uXt0g`;
+  navigator.geolocation.getCurrentPosition(
+    onSetupMapBoxSuccess,
+    onSetupMapBoxFail,
+    {
+      enableHighAccuracy: true,
+    }
+  );
+}
+let marker = new mapboxgl.Marker({
+  color: "#f21f22",
+  draggable: true,
+});
+mapBoxSetUp();
+
+async function viewLocationInfoCard(lng, lat) {
+  const result = await getLocationByCoordinates(lng, lat);
   const popup = new mapboxgl.Popup({ closeButton: false });
   popup
     .setHTML(
@@ -60,12 +72,13 @@ async function viewInfoCard(lng, lat) {
     .setLngLat([lng, lat])
     .addTo(map);
 }
-backToBtn.addEventListener("click", (e) => {
-  currentLocation &&
-    moveToPlace(currentLocation[0], currentLocation[1], currentLocation[2]);
-});
-function moveToPlace(lng, lat, type) {
-  marker.setLngLat([lng, lat]).addTo(map);
+backToBtnElement.addEventListener("click", backToCurrentLocation);
+function backToCurrentLocation() {
+  if (currentLocation) {
+    onFlyToLocation(currentLocation[0], currentLocation[1], currentLocation[2]);
+  }
+}
+function getZoomByLocationType(type) {
   let zoom = 12;
   switch (type) {
     case "locality":
@@ -86,6 +99,11 @@ function moveToPlace(lng, lat, type) {
     default:
       break;
   }
+  return zoom;
+}
+function onFlyToLocation(lng, lat, type) {
+  const zoom = getZoomByLocationType(type);
+  marker.setLngLat([lng, lat]).addTo(map);
   map.flyTo({
     center: [lng, lat],
     essential: true,
@@ -93,73 +111,113 @@ function moveToPlace(lng, lat, type) {
   });
   currentLocation = [lng, lat, type];
   setTimeout(() => {
-    suggestions.classList.remove("view");
+    hideSuggestionBox();
   });
 }
 
-let isFetching = false;
-let typingTimeout;
-let queryTimeout;
-function delay(query) {
+function debounceSuggest(callback) {
   if (typingTimeout) {
     clearTimeout(typingTimeout);
   }
-  typingTimeout = setTimeout(() => {
-    query
-      ? suggestions.classList.add("view")
-      : suggestions.classList.remove("view");
-    query = query.replace(/\//g, "%2F");
-    clearTimeoutFixedFetch();
-    query && fetchData(query.toLowerCase());
-  }, 500);
+  typingTimeout = setTimeout(callback, 500);
 }
-function delayFixedFetch(query) {
+function delaySuggest(callback) {
   isFetching = true;
-  queryTimeout = setTimeout(() => {
-    suggestions.classList.add("view");
-    query = query.replace(/\//g, "%2F");
-    query ? fetchData(query.toLowerCase()) : clearTimeoutFixedFetch();
-  }, 1200);
+  fetchTimeout = setTimeout(callback, 1200);
 }
-function clearTimeoutFixedFetch() {
+function stopSuggestFixedTimeout() {
   if (isFetching) {
     isFetching = false;
-    if (queryTimeout) clearTimeout(queryTimeout);
+    if (fetchTimeout) clearTimeout(fetchTimeout);
   }
 }
-input.addEventListener("keyup", (e) => {
-  if ((e.which <= 90 && e.which >= 48) || e.which === 8) {
-    const query = e.target.value;
-    !isFetching && delayFixedFetch(query);
-    delay(query);
-    query
-      ? loading.classList.add("loading")
-      : loading.classList.remove("loading");
+
+function viewSuggestionBox() {
+  suggestionsElement.classList.add("view");
+}
+function hideSuggestionBox() {
+  suggestionsElement.classList.remove("view");
+}
+function viewLoadingIcon() {
+  loadingElement.classList.add("loading");
+}
+function hideLoadingIcon() {
+  loadingElement.classList.remove("loading");
+}
+
+
+async function onSuggestLocationFixedTimeout(query) {
+  query ? viewSuggestionBox() : hideSuggestionBox();
+  if (query) {
+    const formattedQuery = query.replace(/\//g, "%2F").toLowerCase();
+    const locations = await getLocationByName(formattedQuery);
+    locations ? suggestLocation(locations) : onSuggestLocationFail();
+  } else {
+    stopSuggestFixedTimeout();
   }
-});
+  hideLoadingIcon();
+}
+async function onSuggestLocation(query) {
+  query ? viewSuggestionBox() : hideSuggestionBox();
+  stopSuggestFixedTimeout();
+  if (query) {
+    const formattedQuery = query.replace(/\//g, "%2F").toLowerCase();
+    const locations = await getLocationByName(formattedQuery);
+    locations && suggestLocation(locations);
+    hideLoadingIcon();
+  }
+}
+function checkInputValueIsValid(e) {
+  return (e.which <= 90 && e.which >= 48) || e.which === 8;
+}
+searchInputElement.addEventListener("keyup", onSearchInputChange);
+function onSearchInputChange(e) {
+  if (checkInputValueIsValid()) {
+    let query = e.target.value;
+    if (!isFetching) {
+      delaySuggest(onSuggestLocationFixedTimeout(query));
+    }
+    debounceSuggest(onSuggestLocation(query));
+    query ? viewLoadingIcon() : hideLoadingIcon();
+  }
+}
 
-//Stop bubbling
-document.body.addEventListener("click", () => {
-  suggestions.classList.remove("view");
-});
-document.querySelector(".search-box").addEventListener("click", (e) => {
-  suggestions.classList.add("view");
-  e.stopPropagation();
-});
-//Stop bubbling
-
-async function fetchByCoordinates(lng, lat) {
+async function getLocationByCoordinates(lng, lat) {
   try {
     const promise = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
     );
     return promise.json();
   } catch (error) {
-    console.log(error);
+    return error;
   }
 }
-
-async function fetchData(query, type) {
+function suggestLocation(data) {
+  if (!data?.features || data.features.length === 0) {
+    suggestionsElement.innerHTML = `
+    <div class="sug">
+        <span>No place found</span>
+        </div>
+    `;
+  } else {
+    const html = data.features
+      .map(
+        (item) =>
+          `
+      <div onclick="onFlyToLocation(${
+        item.center[0] + "," + item.center[1] + "," + `'${item.place_type[0]}'`
+      })" class="sug">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>${item.place_name}</span>
+        </div>
+        
+        `
+      )
+      .join("");
+    suggestionsElement.innerHTML = html;
+  }
+}
+async function getLocationByName(query) {
   try {
     const promise = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${mapboxgl.accessToken}`
@@ -167,39 +225,24 @@ async function fetchData(query, type) {
     if (!promise?.ok) {
       return;
     }
-    loading.classList.remove("loading");
     const data = await promise.json();
-    if (!data?.features || data.features.length === 0) {
-      suggestions.innerHTML = `
-      <div class="sug">
-          <span>No place found</span>
-          </div>
-      `;
-    } else {
-      suggestions.innerHTML = "";
-      data.features.forEach((item, index) => {
-        suggestions.innerHTML += `
-        <div onclick="moveToPlace(${
-          item.center[0] +
-          "," +
-          item.center[1] +
-          "," +
-          `'${item.place_type[0]}'`
-        })" class="sug">
-            <i class="fas fa-map-marker-alt"></i>
-            <span>${item.place_name}</span>
-          </div>
-          
-          `;
-      });
-    }
+    return data;
   } catch (error) {
-    loading.classList.add("remove");
-    suggestions.innerHTML = `
+    return undefined;
+  }
+}
+function onSuggestLocationFail() {
+  suggestionsElement.innerHTML = `
     <div class="sug">
       <i class="fas fa-map-marker-alt"></i>
       <span>Something went wrong</span>
     </div>
       `;
-  }
 }
+document.body.addEventListener("click", () => {
+  viewSuggestionBox();
+});
+document.querySelector(".search-box").addEventListener("click", (e) => {
+  hideSuggestionBox();
+  e.stopPropagation();
+});
